@@ -1,64 +1,170 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+<p align="center"><img src="https://www.interflora.co.uk/images/logo.svg" width="400"></p>
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Exercice 
 
-## About Laravel
+We in Interflora Denmark, need to model how our company is structured so we can help our new employees have a better overview of our 
+company structure.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+We have our root node (only one, in our case the CEO) and several child nodes.
+Each of these nodes may have its own children. 
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+It can be structured as something like this: 
+```
+        root
+       /    \
+      a      b
+      |
+      c
+    / 	\
+   d     e
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# Requirements
 
-## Learning Laravel
+- Laravel Valet
+- PHP 8.0
+- Composer
+- MySQL
+- SQLite (for automatic tests in memory)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# Install
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Use Laravel Valet or similar with the public path to be `public/`.
 
-## Laravel Sponsors
+Install composer dependencies.
+```shell
+composer install
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Copy `.env.example` to `.env` and update the database credentials.
 
-### Premium Partners
+Migrate and seed the database:
+```shell
+php artisan migrate --seed
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+# API Documentation
 
-## Contributing
+## Add a new node to the tree.
+Request:
+```
+curl --location --request POST '/api/nodes' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "Awesome Node",
+    "parent_id": 1,
+    "programming_language": "php",
+    "department": "Development"
+}'
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Response:
+```
+{
+    "data": {
+        "id": 2,
+        "name": "Awesome Node",
+        "department": "Development",
+        "programming_language": "php",
+        "parent_id": 1,
+        "height": 2,
+        "children": []
+    }
+}
+```
 
-## Code of Conduct
+## Get all child nodes of a given node from the tree. (Just 1 layer of children)
+Request:
+```
+curl --location --request GET '/api/nodes/1'
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Response:
+```
+{
+    "data": {
+        "id": 1,
+        "name": "R00T",
+        "department": null,
+        "programming_language": null,
+        "parent_id": 1,
+        "height": 0,
+        "children": [
+            {
+                "id": 2,
+                "name": "a",
+                "department": null,
+                "programming_language": null
+            },
+            {
+                "id": 3,
+                "name": "b",
+                "department": null,
+                "programming_language": null
+            }
+        ]
+    }
+}
+```
 
-## Security Vulnerabilities
+## Change the parent node of a given node.
+Request:
+```
+curl --location --request PATCH '/api/nodes/3' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "parent_id": 1
+}'
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Response:
+```
+{
+    "data": {
+        "id": 3,
+        "name": "Awesome Node",
+        "department": null,
+        "programming_language": null,
+        "parent_id": 1,
+        "height": 1,
+        "children": []
+    }
+}
+```
 
-## License
+# Testing
+This application is fully automatic tested.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```shell
+/vendor/bin/phpunit
+
+PHPUnit 9.5.20 #StandWithUkraine
+
+............                                                      12 / 12 (100%)
+
+Time: 00:00.273, Memory: 32.00 MB
+
+OK (12 tests, 22 assertions)
+```
+
+# Questions
+
+## Should the identifier be string-based?
+We could easily convert the Node identifier to be string based in order to support the strings being like `root`, `a`,
+`b` and so on. That might make sense in this case, but I wouldn't overcomplicate this
+by during so if it wasn't intended.
+
+## Should Nodes have roles?
+From the description it sounds like there could be a use-case for roles, here including Developers and Managers
+to define their access to the additional `department` and `programming_language` field.
+
+## Only one root node?
+Should we make a limit to allow only one root node to exists?
+
+# Improve
+
+What would I improve if I had more time.
+I would clean-up the request classes and the tests even further.
+I would add some database indexes and query improvements.
+Add cache for Node's for better performance.
+Add pagination and other API enhancements.
